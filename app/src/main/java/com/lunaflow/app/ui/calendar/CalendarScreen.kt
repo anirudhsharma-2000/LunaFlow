@@ -44,7 +44,7 @@ fun CalendarScreen(
         Buttons()
     }
     YearMonthBottomSheet(
-        isSheetOpen = false,
+        isSheetOpen = sheetState,
         selectedYear = selectedYear,
         selectedMonth = selectedMonth,
         years = years,
@@ -53,7 +53,7 @@ fun CalendarScreen(
         onMonthChange = viewModel::onMonthSelected,
         onDismiss = { viewModel.onSheetState(false) }
     )
-    LogPeriodBottomSheet(sheetState, onDismiss = { viewModel.onSheetState(false) })
+    LogPeriodBottomSheet(false, onDismiss = { viewModel.onSheetState(false) })
 }
 
 @Composable
