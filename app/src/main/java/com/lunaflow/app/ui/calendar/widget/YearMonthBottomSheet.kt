@@ -1,5 +1,6 @@
 package com.lunaflow.app.ui.calendar.widget
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,12 +22,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,14 +40,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lunaflow.app.ui.horizontalFadeMask
 import com.lunaflow.app.ui.theme.Fonts
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YearMonthBottomSheet(
-    currentYear: Int,
+    isSheetOpen: Boolean,
+    selectedYear: Int,
     selectedMonth: Int,
     years: List<Int>,
     months: List<String>,
@@ -53,15 +58,24 @@ fun YearMonthBottomSheet(
     onMonthChange: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     val itemWidth = 64.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val sidePadding = (screenWidth / 2) - (itemWidth / 2)
-    val sheetState = rememberModalBottomSheetState()
-    val listState = rememberLazyListState(years.indexOf(currentYear).coerceAtLeast(0))
     val flingBehavior =
         rememberSnapFlingBehavior(lazyListState = listState, snapPosition = SnapPosition.Center)
     val haptic = LocalHapticFeedback.current
 
+    LaunchedEffect(isSheetOpen, selectedYear) {
+        if (isSheetOpen) {
+            val index = years.indexOf(selectedYear)
+            if (index >= 0) {
+                listState.scrollToItem(index)
+            }
+        }
+    }
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo }
             .map { layoutInfo ->
@@ -82,79 +96,92 @@ fun YearMonthBottomSheet(
                 }
             }
     }
-
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        LazyRow(
-            Modifier
-                .fillMaxWidth()
-                .horizontalFadeMask(),
-            state = listState,
-            flingBehavior = flingBehavior,
-            contentPadding = PaddingValues(horizontal = sidePadding),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            items(years) {
-                val isSelected = it == currentYear
-                Text(
-                    text = it.toString(),
-                    fontFamily = Fonts.interBold,
-                    fontSize = if (isSelected) 18.sp else 14.sp,
-                    color = if (isSelected) Color.White else Color.Gray,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    textAlign = TextAlign.Center
-
-                )
-            }
-        }
-        Spacer(Modifier.size(20.dp))
-        Column(
-            Modifier.padding(horizontal = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+    AnimatedVisibility(isSheetOpen) {
+        ModalBottomSheet(onDismissRequest = {
+            dismissDialog(onDismiss, coroutineScope, sheetState)
+        }, sheetState = sheetState) {
+            LazyRow(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalFadeMask(),
+                state = listState,
+                flingBehavior = flingBehavior,
+                contentPadding = PaddingValues(horizontal = sidePadding),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                itemsIndexed(months) { index, month ->
-                    val monthNumber = index + 1
-                    val isSelected = monthNumber == selectedMonth
-
+                items(years) {
+                    val isSelected = it == selectedYear
                     Text(
-                        text = month.take(3),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(
-                                1.dp,
-                                if (isSelected) Color.White else Color.Gray,
-                                RoundedCornerShape(6.dp)
-                            )
-                            .background(
-                                if (isSelected) Color.White.copy(alpha = 0.15f)
-                                else Color.Transparent,
-                                RoundedCornerShape(6.dp)
-                            )
-                            .clickable { onMonthChange(monthNumber) }
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        text = it.toString(),
+                        fontFamily = Fonts.interBold,
+                        fontSize = if (isSelected) 18.sp else 14.sp,
                         color = if (isSelected) Color.White else Color.Gray,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        textAlign = TextAlign.Center
+
+                    )
+                }
+            }
+            Spacer(Modifier.size(20.dp))
+            Column(
+                Modifier.padding(horizontal = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    itemsIndexed(months) { index, month ->
+                        val monthNumber = index + 1
+                        val isSelected = monthNumber == selectedMonth
+
+                        Text(
+                            text = month.take(3),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    1.dp,
+                                    if (isSelected) Color.White else Color.Gray,
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .background(
+                                    if (isSelected) Color.White.copy(alpha = 0.15f)
+                                    else Color.Transparent,
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .clickable { onMonthChange(monthNumber) }
+                                .padding(vertical = 12.dp, horizontal = 8.dp),
+                            color = if (isSelected) Color.White else Color.Gray,
+                            fontFamily = Fonts.interRegular,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { dismissDialog(onDismiss, coroutineScope, sheetState) },
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(
+                        text = "Done",
                         fontFamily = Fonts.interRegular,
-                        fontSize = 14.sp,
+                        color = Color.White,
                         textAlign = TextAlign.Center
                     )
                 }
             }
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onDismiss,
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Text(
-                    text = "Done",
-                    fontFamily = Fonts.interRegular,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-            }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+private fun dismissDialog(
+    onDismiss: () -> Unit,
+    coroutineScope: CoroutineScope,
+    sheetState: SheetState
+) {
+    onDismiss()
+    coroutineScope.launch { sheetState.hide() }
 }
