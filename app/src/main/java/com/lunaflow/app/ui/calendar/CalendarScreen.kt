@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.lunaflow.app.ui.calendar.widget.Buttons
+import com.lunaflow.app.ui.calendar.widget.LogPeriodBottomSheet
 import com.lunaflow.app.ui.calendar.widget.TopBar
 import com.lunaflow.app.ui.calendar.widget.YearMonthBottomSheet
 import com.lunaflow.app.ui.navigation.Screens
@@ -39,10 +41,10 @@ fun CalendarScreen(
         Placeholder(modifier = Modifier.height(250.dp), text = "CalendarView")
         Placeholder(modifier = Modifier.height(100.dp), text = "Insight")
         Placeholder(modifier = Modifier.height(100.dp), text = "Cycle Dates")
-        Placeholder(modifier = Modifier.height(80.dp), text = "Buttons")
+        Buttons()
     }
     YearMonthBottomSheet(
-        isSheetOpen = sheetState,
+        isSheetOpen = false,
         selectedYear = selectedYear,
         selectedMonth = selectedMonth,
         years = years,
@@ -51,6 +53,7 @@ fun CalendarScreen(
         onMonthChange = viewModel::onMonthSelected,
         onDismiss = { viewModel.onSheetState(false) }
     )
+    LogPeriodBottomSheet(sheetState, onDismiss = { viewModel.onSheetState(false) })
 }
 
 @Composable
@@ -58,8 +61,8 @@ fun Placeholder(modifier: Modifier = Modifier, text: String) {
     Box(
         modifier
             .fillMaxWidth()
-            .background(Color.Gray)
-            .border(1.dp, Color.Black),
+            .background(Color.Gray.copy(0.1f))
+            .border(1.dp, Color.Black.copy(0.1f)),
         contentAlignment = Alignment.Center
     ) {
         Text(text)

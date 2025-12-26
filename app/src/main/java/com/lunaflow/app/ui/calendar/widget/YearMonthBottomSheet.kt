@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lunaflow.app.ui.dismissDialog
 import com.lunaflow.app.ui.horizontalFadeMask
 import com.lunaflow.app.ui.theme.Fonts
 import kotlinx.coroutines.CoroutineScope
@@ -181,12 +182,3 @@ fun YearMonthBottomSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-private fun dismissDialog(
-    onDismiss: () -> Unit,
-    coroutineScope: CoroutineScope,
-    sheetState: SheetState
-) {
-    onDismiss()
-    coroutineScope.launch { sheetState.hide() }
-}
