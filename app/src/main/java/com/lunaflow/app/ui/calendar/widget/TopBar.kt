@@ -23,7 +23,6 @@ import com.lunaflow.app.ui.theme.Fonts
 
 @Composable
 fun TopBar(
-    modifier: Modifier = Modifier.Companion,
     monthYear: String,
     onDateClick: () -> Unit,
     onTodayClick: () -> Unit
@@ -36,7 +35,10 @@ fun TopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            Modifier.clickable(onClick = onDateClick),
+            Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .clickable(onClick = onDateClick)
+                .padding(vertical = 4.dp, horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {

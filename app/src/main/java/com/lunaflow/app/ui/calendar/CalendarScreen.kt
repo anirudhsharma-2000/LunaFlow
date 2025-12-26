@@ -33,8 +33,9 @@ fun CalendarScreen(
     val months = viewModel.months.collectAsStateWithLifecycle().value
     Column(modifier = modifier) {
         TopBar(
-            modifier, monthYear, onDateClick = { viewModel.onSheetState(true) },
-            onTodayClick = { viewModel.currentYearMonth() })
+            monthYear = monthYear,
+            onDateClick = { viewModel.onSheetState(true) },
+            onTodayClick = { viewModel.setCurrentYearMonth() })
         Placeholder(modifier = Modifier.height(250.dp), text = "CalendarView")
         Placeholder(modifier = Modifier.height(100.dp), text = "Insight")
         Placeholder(modifier = Modifier.height(100.dp), text = "Cycle Dates")

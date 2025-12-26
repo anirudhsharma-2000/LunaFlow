@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
@@ -64,10 +65,8 @@ fun YearMonthBottomSheet(
     val itemWidth = 64.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val sidePadding = (screenWidth / 2) - (itemWidth / 2)
-    val flingBehavior =
-        rememberSnapFlingBehavior(lazyListState = listState, snapPosition = SnapPosition.Center)
+    val flingBehavior = rememberSnapFlingBehavior(listState, SnapPosition.Center)
     val haptic = LocalHapticFeedback.current
-
     LaunchedEffect(isSheetOpen, selectedYear) {
         if (isSheetOpen) {
             val index = years.indexOf(selectedYear)
@@ -116,7 +115,13 @@ fun YearMonthBottomSheet(
                         fontFamily = Fonts.interBold,
                         fontSize = if (isSelected) 18.sp else 14.sp,
                         color = if (isSelected) Color.White else Color.Gray,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable {
+                                coroutineScope.launch { listState.scrollToItem(years.indexOf(it)) }
+                            }
+                            .padding(vertical = 2.dp, horizontal = 6.dp),
                         textAlign = TextAlign.Center
 
                     )

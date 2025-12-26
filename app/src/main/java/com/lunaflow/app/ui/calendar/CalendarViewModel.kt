@@ -19,7 +19,7 @@ class CalendarViewModel : ViewModel() {
     val months = MutableStateFlow(CalendarDomain.months).asStateFlow()
 
     init {
-        currentYearMonth()
+        setCurrentYearMonth()
     }
 
     fun onYearChanged(year: Int) {
@@ -29,7 +29,7 @@ class CalendarViewModel : ViewModel() {
         }
     }
 
-    fun currentYearMonth() {
+    fun setCurrentYearMonth() {
         val (year, month) = CalendarDomain.current()
         _selectedYear.value = year
         _selectedMonth.value = month
